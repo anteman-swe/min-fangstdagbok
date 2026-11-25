@@ -65,3 +65,4 @@ och i panelen "Registrera fångst" klickar man på kartan för att välja positi
 - **Bilder:** sparas i minnet → skapa `S3BildLagring implements BildLagring`
 - **AI:** knappen "Identifiera art med AI" är avstängd → Spring AI
 - **Inloggning:** fejkad → Spring Security
+- 
