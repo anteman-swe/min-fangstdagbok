@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Om – FiskeExperten')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: header('om')}"></header>
+
+<main class="container container--narrow">
+    <article class="card prose">
+        <h1>Om FiskeExperten</h1>
+        <p>
+            FiskeExperten är en fångstdagbok på kartan. Ladda upp en bild på din fångst,
+            markera var du fick den och låt AI:n berätta vilken art det är.
+        </p>
+        <h2>Så funkar det</h2>
+        <ol>
+            <li>Klicka på <strong>Ny fångst</strong> på kartan.</li>
+            <li>Ladda upp en bild och fyll i art, vikt och längd.</li>
+            <li>Klicka på kartan där du fick fisken och spara.</li>
+        </ol>
+        <h2>Vilka är vi?</h2>
+        <p>Grupp E – ett skolprojekt byggt med Spring Boot, Thymeleaf, Spring AI och S3.</p>
+        <p class="mt-6"><a th:href="@{/karta}" class="btn btn-primary">Till kartan</a></p>
+    </article>
+</main>
+
+</body>
+</html>

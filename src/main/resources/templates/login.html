@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Logga in – FiskeExperten')}"></head>
+<body>
+
+<main class="login">
+
+    <!-- Vänster sida: gradient med vågor (döljs på mobil) -->
+    <section class="login-hero">
+        <div class="brand brand--lg">
+            <svg th:replace="~{fragments/icons :: fish('icon icon-lg')}"></svg> FiskeExperten
+        </div>
+        <div class="login-hero__text">
+            <h1>Varje fångst har en plats.</h1>
+            <p>Spara bild, art och position. Se alla dina fiskeplatser på kartan.</p>
+        </div>
+        <div class="login-hero__sun"></div>
+        <svg class="waves" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+            <path fill="currentColor" opacity=".5" d="M0 60 Q75 20 150 60 T300 60 T450 60 T600 60 V120 H0Z"/>
+            <path fill="currentColor" d="M0 85 Q75 50 150 85 T300 85 T450 85 T600 85 V120 H0Z"/>
+        </svg>
+    </section>
+
+    <!-- Höger sida: inloggningsformulär -->
+    <section class="login-form-wrap">
+        <form class="login-card" th:action="@{/login}" method="post">
+            <div class="brand brand--mobile">
+                <svg th:replace="~{fragments/icons :: fish('icon')}"></svg> FiskeExperten
+            </div>
+
+            <h2>Välkommen tillbaka</h2>
+            <p class="muted small mt-1">Logga in för att se dina fångster.</p>
+
+            <label for="email" class="label mt-6">E-post</label>
+            <div class="input-icon">
+                <svg th:replace="~{fragments/icons :: mail('icon icon-sm muted')}"></svg>
+                <input id="email" name="email" type="email" placeholder="du@exempel.se" autocomplete="email">
+            </div>
+
+            <label for="losenord" class="label mt-4">Lösenord</label>
+            <div class="input-icon">
+                <svg th:replace="~{fragments/icons :: lock('icon icon-sm muted')}"></svg>
+                <input id="losenord" name="losenord" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-6">Logga in</button>
+
+            <p class="center small muted mt-4">
+                Inget konto? <a th:href="@{/karta}" class="link">Skapa konto</a>
+            </p>
+        </form>
+    </section>
+
+</main>
+
+</body>
+</html>

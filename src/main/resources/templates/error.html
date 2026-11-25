@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Något gick fel – FiskeExperten')}"></head>
+<body>
+<main class="center-page">
+    <div class="center-page__box">
+        <h1>Sidan kunde inte laddas</h1>
+        <p class="small muted mt-1">
+            Något gick fel<span th:if="${status}" th:text="| (felkod ${status})|"></span>.
+            Försök igen eller gå tillbaka till kartan.
+        </p>
+        <a th:href="@{/karta}" class="btn btn-primary mt-6">Till kartan</a>
+    </div>
+</main>
+</body>
+</html>

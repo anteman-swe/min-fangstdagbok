@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!-- Gemensamma delar som alla sidor använder -->
+<html lang="sv" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(titel)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titel}">FiskeExperten</title>
+    <meta name="description" content="Logga dina fångster på kartan">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+
+    <!-- Leaflet: kartbibliotek (OpenStreetMap) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<header th:fragment="header(aktiv)" class="topbar">
+    <a th:href="@{/karta}" class="brand">
+        <svg th:replace="~{fragments/icons :: fish('icon')}"></svg> FiskeExperten
+    </a>
+    <nav class="topbar__nav">
+        <a th:href="@{/karta}" th:classappend="${aktiv == 'karta'} ? 'active'">Karta</a>
+        <a th:href="@{/karta} + '#fangster'">Mina fångster</a>
+        <a th:href="@{/om}" th:classappend="${aktiv == 'om'} ? 'active'">Om</a>
+    </nav>
+    <a th:href="@{/logga-ut}" class="topbar__logout">
+        <svg th:replace="~{fragments/icons :: logOut('icon icon-sm')}"></svg> Logga ut
+    </a>
+</header>
+
+</body>
+</html>
