@@ -55,7 +55,7 @@ class InloggningTest {
         for (String url : new String[]{"/karta", "/om", "/fangster/1/bild"}) {
             mockMvc.perform(get(url))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("http://localhost/"));
+                    .andExpect(redirectedUrl("/"));
         }
     }
 
@@ -63,7 +63,7 @@ class InloggningTest {
     void ingenKanSkapaFangstUtanInloggning() throws Exception {
         mockMvc.perform(post("/fangster").with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/"));
+                .andExpect(redirectedUrl("/"));
     }
 
     @Test
