@@ -176,6 +176,10 @@ img { max-width: 100%; display: block; }
 .topbar__nav a, .topbar__logout { opacity: .8; transition: opacity .15s; }
 .topbar__nav a:hover, .topbar__nav a.active, .topbar__logout:hover { opacity: 1; }
 .topbar__logout { margin-left: auto; display: flex; align-items: center; gap: .25rem; font-size: .875rem; }
+.topbar__logout-btn {
+  display: flex; align-items: center; gap: .25rem; padding: 0;
+  background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+}
 @media (min-width: 640px) { .topbar__nav { display: flex; } }
 
 /* ===== Kartan ===== */

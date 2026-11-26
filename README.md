@@ -19,7 +19,9 @@ I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run*
 
 | URL | Mall | Vad |
 |---|---|---|
-| `/` | `login.html` | Inloggning (fejkad – skickar bara vidare till kartan) |
+| `/` | `login.html` | Inloggning (Spring Security). Demokonto: `demo@fiskeexperten.se` / `demo1234` |
+| `/registrera` | `registrera.html` | Skapa konto (användarna ligger i minnet tills databasen finns) |
+| `POST /logga-ut` | | Loggar ut |
 | `/karta` | `karta.html` | Karta + lista med fångster + panel för ny fångst |
 | `/karta?q=gädda` | | Sök på art eller plats |
 | `POST /fangster` | | Sparar en ny fångst (med validering) |
@@ -64,5 +66,5 @@ och i panelen "Registrera fångst" klickar man på kartan för att välja positi
 - **Databas:** fångsterna ligger i minnet och försvinner vid omstart → PostgreSQL/PostGIS
 - **Bilder:** sparas i minnet → skapa `S3BildLagring implements BildLagring`
 - **AI:** knappen "Identifiera art med AI" är avstängd → Spring AI
-- **Inloggning:** fejkad → Spring Security
+- **Användare i databasen:** inloggningen använder Spring Security, men kontona ligger i minnet → byt `UserDetailsManager` i `SecurityConfig` mot en databasversion
 - 
