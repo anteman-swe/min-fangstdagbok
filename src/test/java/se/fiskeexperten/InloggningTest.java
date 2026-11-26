@@ -6,8 +6,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -21,7 +27,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@SpringBootTest
+// Demokontot är avstängt som standard, så testet sätter sina egna uppgifter (samma som konstanterna nedan).
+@SpringBootTest(properties = {
+        "fiskeexperten.demo.email=demo@fiskeexperten.se",
+        "fiskeexperten.demo.losenord=demo1234"
+})
 @AutoConfigureMockMvc
 @Import(PostGisTestConfig.class)
 class InloggningTest {
@@ -57,7 +67,7 @@ class InloggningTest {
         for (String url : new String[]{"/karta", "/om", "/fangster/1/bild"}) {
             mockMvc.perform(get(url))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("http://localhost/"));
+                    .andExpect(redirectedUrl("/"));
         }
     }
 
@@ -65,7 +75,7 @@ class InloggningTest {
     void ingenKanSkapaFangstUtanInloggning() throws Exception {
         mockMvc.perform(post("/fangster").with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/"));
+                .andExpect(redirectedUrl("/"));
     }
 
     @Test
@@ -142,6 +152,55 @@ class InloggningTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("registrera"))
                 .andExpect(model().attributeHasFieldErrors("registreringForm", "losenordIgen"));
+    }
+
+    @Test
+    void losenordSomArForLangtIByteVisarFelPaLosenordetInnanDetKodas() throws Exception {
+        // 40 × "å" är bara 40 tecken men 80 byte i UTF-8 – över BCrypts gräns på 72 byte
+        String forLangt = "å".repeat(40);
+        mockMvc.perform(post("/registrera").with(csrf())
+                        .param("email", "bytegrans@exempel.se")
+                        .param("losenord", forLangt)
+                        .param("losenordIgen", forLangt))
+                .andExpect(status().isOk())
+                .andExpect(view().name("registrera"))
+                .andExpect(model().attributeHasFieldErrors("registreringForm", "losenord"));
+
+        assertThat(anvandareFinns("bytegrans@exempel.se")).isFalse();
+    }
+
+    @Test
+    void losenordPaExakt72ByteAccepteras() throws Exception {
+        // 36 × "å" = 36 tecken men exakt 72 byte
+        String exakt = "å".repeat(36);
+        mockMvc.perform(post("/registrera").with(csrf())
+                        .param("email", "exakt72@exempel.se")
+                        .param("losenord", exakt)
+                        .param("losenordIgen", exakt))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/?skapad"));
+    }
+
+    @Test
+    void demokontotArAvstangtSomStandard() throws Exception {
+        // application.properties lämnar demouppgifterna tomma; bara dev-profilen (eller testets
+        // egna egenskaper ovan) slår på dem.
+        Properties standard = new Properties();
+        try (InputStream in = InloggningTest.class.getResourceAsStream("/application.properties")) {
+            standard.load(new InputStreamReader(in, StandardCharsets.UTF_8));
+        }
+
+        assertThat(standard.getProperty("fiskeexperten.demo.email", "").trim()).isEmpty();
+        assertThat(standard.getProperty("fiskeexperten.demo.losenord", "").trim()).isEmpty();
+    }
+
+    private boolean anvandareFinns(String epost) {
+        try {
+            anvandare.loadUserByUsername(epost);
+            return true;
+        } catch (UsernameNotFoundException e) {
+            return false;
+        }
     }
 
     @Test

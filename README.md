@@ -9,13 +9,16 @@ Krav: Java 21+, Maven (eller IntelliJ, som har Maven inbyggt) och en PostgreSQL 
 
 ```sh
 export POSTGIS_PASSWORD=...   # lösenordet för appuser
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Öppna sedan http://localhost:8080
 
-I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run**, och lägg `POSTGIS_PASSWORD`
-under *Environment variables* i run-konfigurationen.
+I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run**, skriv `dev` under
+*Active profiles* och lägg `POSTGIS_PASSWORD` under *Environment variables* i run-konfigurationen.
+
+Profilen `dev` lägger in ett demokonto (`application-dev.properties`). Utan den finns inget demokonto, och
+man skapar ett konto på `/registrera`. Använd inte `dev` i en riktig miljö.
 
 ## Databas
 
@@ -36,7 +39,8 @@ redan körts – lägg ändringar i en ny fil (`V2__...sql`). Kraven på databas
 - `appuser` ska äga databasen (eller ha `CREATE` på schemat `public`), annars kan Flyway inte skapa tabellerna.
 - PostGIS-tillägget måste finnas i databasen. PostGIS-containern skapar det i databasen som `POSTGRES_DB` pekar
   på; annars kör en superanvändare `CREATE EXTENSION postgis;` en gång.
-- Första starten mot en tom databas lägger in demokontot med fyra exempelfångster (se `DemoData`).
+- Med profilen `dev` läggs demokontot in med fyra exempelfångster första gången appen startar mot en tom
+  databas (se `DemoData`).
 
 Testerna startar en egen tillfällig PostGIS i Docker (Testcontainers), så **Docker måste köra** när du kör
 `mvn test`. De rör aldrig din riktiga databas.
@@ -45,7 +49,7 @@ Testerna startar en egen tillfällig PostGIS i Docker (Testcontainers), så **Do
 
 | URL | Mall | Vad |
 |---|---|---|
-| `/` | `login.html` | Inloggning (Spring Security). Demokonto: `demo@fiskeexperten.se` / `demo1234` |
+| `/` | `login.html` | Inloggning (Spring Security). Med profilen `dev`: `demo@fiskeexperten.se` / `demo1234` |
 | `/registrera` | `registrera.html` | Skapa konto |
 | `POST /logga-ut` | | Loggar ut |
 | `/karta` | `karta.html` | Karta + lista med den inloggade användarens fångster + panel för ny fångst |

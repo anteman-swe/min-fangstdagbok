@@ -15,7 +15,8 @@ import java.time.LocalDate;
 /**
  * Lägger in ett demokonto med fyra exempelfångster första gången appen startar mot en tom databas
  * (så att kartan inte är tom under utveckling). Görs ingenting om kontot redan finns.
- * Lämna fiskeexperten.demo.email tom i application.properties för att stänga av det.
+ * Avstängt som standard (fiskeexperten.demo.email och .losenord är tomma i application.properties);
+ * slås på med profilen "dev" (application-dev.properties).
  */
 @Component
 public class DemoData implements ApplicationRunner {
