@@ -30,9 +30,12 @@
         <a th:href="@{/karta} + '#fangster'">Mina fångster</a>
         <a th:href="@{/om}" th:classappend="${aktiv == 'om'} ? 'active'">Om</a>
     </nav>
-    <a th:href="@{/logga-ut}" class="topbar__logout">
-        <svg th:replace="~{fragments/icons :: logOut('icon icon-sm')}"></svg> Logga ut
-    </a>
+    <!-- Utloggning kräver POST (CSRF-skyddad), därför ett formulär i stället för en länk -->
+    <form th:action="@{/logga-ut}" method="post" class="topbar__logout">
+        <button type="submit" class="topbar__logout-btn">
+            <svg th:replace="~{fragments/icons :: logOut('icon icon-sm')}"></svg> Logga ut
+        </button>
+    </form>
 </header>
 
 </body>

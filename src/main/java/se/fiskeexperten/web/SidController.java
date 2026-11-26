@@ -1,30 +1,26 @@
 package se.fiskeexperten.web;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 
-/** Inloggning, utloggning och Om-sidan. */
+/**
+ * Inloggningssidan och Om-sidan.
+ * Själva inloggningen och utloggningen sköts av Spring Security (se SecurityConfig),
+ * och registreringen ligger i RegistreringController.
+ */
 @Controller
 public class SidController {
 
+    /** Inloggningssidan. Den som redan är inloggad skickas vidare till kartan. */
     @GetMapping("/")
-    public String login() {
+    public String login(Authentication inloggad) {
+        if (inloggad != null && !(inloggad instanceof AnonymousAuthenticationToken)
+                && inloggad.isAuthenticated()) {
+            return "redirect:/karta";
+        }
         return "login";
-    }
-
-    /**
-     * Fejkad inloggning – skickar bara vidare till kartan.
-     * TODO (Trello: "Inloggning och användare"): ersätt med Spring Security.
-     */
-    @PostMapping("/login")
-    public String loggaIn() {
-        return "redirect:/karta";
-    }
-
-    @GetMapping("/logga-ut")
-    public String loggaUt() {
-        return "redirect:/";
     }
 
     @GetMapping("/om")
