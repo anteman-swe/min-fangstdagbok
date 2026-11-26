@@ -8,6 +8,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import se.fiskeexperten.model.Anvandare;
 import se.fiskeexperten.service.AnvandarService;
 
 /** Skapa konto. */
@@ -37,8 +38,15 @@ public class RegistreringController {
             result.rejectValue("losenordIgen", "losenord.olika", "Lösenorden är inte likadana");
         }
 
-        if (!result.hasFieldErrors("email") && anvandare.finns(form.getEmail())) {
-            result.rejectValue("email", "email.upptagen", UPPTAGEN);
+        // Samma normalisering som vid sparandet (trimmad, gemener), så att längd- och dubblettkontrollen
+        // gäller exakt det värde som hamnar i databasen.
+        String epost = AnvandarService.normalisera(form.getEmail());
+        if (!result.hasFieldErrors("email")) {
+            if (epost.length() > Anvandare.MAX_EPOST_LANGD) {
+                result.rejectValue("email", "email.langt", "Högst " + Anvandare.MAX_EPOST_LANGD + " tecken");
+            } else if (anvandare.finns(epost)) {
+                result.rejectValue("email", "email.upptagen", UPPTAGEN);
+            }
         }
 
         if (result.hasErrors()) {
@@ -46,9 +54,13 @@ public class RegistreringController {
         }
 
         try {
-            anvandare.skapa(form.getEmail(), losenordsKodare.encode(form.getLosenord()));
+            anvandare.skapa(epost, losenordsKodare.encode(form.getLosenord()));
         } catch (DataIntegrityViolationException e) {
-            // Någon hann registrera samma adress mellan kontrollen och sparandet (unik nyckel i databasen)
+            // Visa "upptagen" bara om kontot faktiskt finns nu, dvs. någon hann registrera samma adress
+            // mellan kontrollen och sparandet. Alla andra databasfel är riktiga fel och ska inte döljas.
+            if (!anvandare.finns(epost)) {
+                throw e;
+            }
             result.rejectValue("email", "email.upptagen", UPPTAGEN);
             return "registrera";
         }

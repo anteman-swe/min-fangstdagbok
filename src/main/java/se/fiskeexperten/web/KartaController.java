@@ -108,12 +108,29 @@ public class KartaController {
         }
 
         String nyBild = sparaBildOmFinns(form);
-        if (nyBild != null) {
-            bildLagring.radera(gammal.get().getBildNyckel()); // ta bort den gamla bilden
+        Optional<Fangst> uppdaterad;
+        try {
+            uppdaterad = fangstService.uppdatera(agare, id, form, nyBild);
+        } catch (RuntimeException e) {
+            // Sparandet misslyckades: behåll den gamla bilden och släng den nyuppladdade
+            if (nyBild != null) {
+                bildLagring.radera(nyBild);
+            }
+            throw e;
         }
-        Fangst uppdaterad = fangstService.uppdatera(agare, id, form, nyBild).orElseThrow();
+        if (uppdaterad.isEmpty()) { // fångsten raderades medan formuläret var öppet
+            if (nyBild != null) {
+                bildLagring.radera(nyBild);
+            }
+            redirect.addFlashAttribute("meddelande", "Fångsten finns inte längre");
+            return "redirect:/karta";
+        }
+        if (nyBild != null) {
+            // Först nu, när databasen pekar på den nya bilden, är den gamla överflödig
+            bildLagring.radera(gammal.get().getBildNyckel());
+        }
 
-        redirect.addFlashAttribute("meddelande", uppdaterad.getArt() + " uppdaterad!");
+        redirect.addFlashAttribute("meddelande", uppdaterad.get().getArt() + " uppdaterad!");
         redirect.addAttribute("vald", id);
         return "redirect:/karta";
     }

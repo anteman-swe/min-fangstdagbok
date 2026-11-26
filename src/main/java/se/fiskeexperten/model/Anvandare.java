@@ -14,11 +14,14 @@ import java.time.Instant;
 @Table(name = "anvandare")
 public class Anvandare {
 
+    /** Samma som VARCHAR(120) i migreringen V1. */
+    public static final int MAX_EPOST_LANGD = 120;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 120)
+    @Column(nullable = false, unique = true, length = MAX_EPOST_LANGD)
     private String epost;
 
     @Column(name = "losenord_hash", nullable = false, length = 100)

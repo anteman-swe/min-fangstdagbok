@@ -17,8 +17,13 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run**, skriv `dev` under
 *Active profiles* och lägg `POSTGIS_PASSWORD` under *Environment variables* i run-konfigurationen.
 
-Profilen `dev` lägger in ett demokonto (`application-dev.properties`). Utan den finns inget demokonto, och
-man skapar ett konto på `/registrera`. Använd inte `dev` i en riktig miljö.
+Profilen `dev` lägger in ett demokonto (`application-dev.properties`). Utan den läggs inget demokonto in,
+och man skapar ett konto på `/registrera`. Använd inte `dev` i en riktig miljö.
+
+OBS: att sluta använda `dev` tar **inte** bort ett demokonto som `DemoData` redan har skapat. Kontot ligger
+kvar i databasen, med sitt kända lösenord, tills någon tar bort det. Gör det i en databas som inte längre är
+för utveckling, t.ex. `delete from anvandare where epost = 'demo@fiskeexperten.se';` (kontots fångster
+raderas samtidigt).
 
 ## Databas
 
