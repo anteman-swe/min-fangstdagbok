@@ -5,24 +5,50 @@ Spring Boot 4.2 + Thymeleaf. Designen kommer från Lovable-prototypen, översatt
 
 ## Kör igång
 
-Krav: Java 21+ och Maven (eller IntelliJ, som har Maven inbyggt).
+Krav: Java 21+, Maven (eller IntelliJ, som har Maven inbyggt) och en PostgreSQL med PostGIS (se Databas nedan).
 
 ```sh
+export POSTGIS_PASSWORD=...   # lösenordet för appuser
 mvn spring-boot:run
 ```
 
 Öppna sedan http://localhost:8080
 
-I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run**.
+I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run**, och lägg `POSTGIS_PASSWORD`
+under *Environment variables* i run-konfigurationen.
+
+## Databas
+
+Allt (användare, fångster och positioner) ligger i **en** PostGIS-databas. Positionen är en
+`geometry(Point, 4326)`-kolumn på `fangst`, så en fångst och dess plats sparas i samma transaktion.
+
+| Miljövariabel | Standardvärde |
+|---|---|
+| `POSTGIS_HOST` | `localhost` |
+| `POSTGIS_PORT` | `5432` |
+| `POSTGIS_DB` | `gis` |
+| `POSTGIS_USER` | `appuser` |
+| `POSTGIS_PASSWORD` | (ingen – måste sättas) |
+
+Tabellerna skapas av **Flyway** vid start (`src/main/resources/db/migration`). Ändra aldrig en migrering som
+redan körts – lägg ändringar i en ny fil (`V2__...sql`). Kraven på databasen:
+
+- `appuser` ska äga databasen (eller ha `CREATE` på schemat `public`), annars kan Flyway inte skapa tabellerna.
+- PostGIS-tillägget måste finnas i databasen. PostGIS-containern skapar det i databasen som `POSTGRES_DB` pekar
+  på; annars kör en superanvändare `CREATE EXTENSION postgis;` en gång.
+- Första starten mot en tom databas lägger in demokontot med fyra exempelfångster (se `DemoData`).
+
+Testerna startar en egen tillfällig PostGIS i Docker (Testcontainers), så **Docker måste köra** när du kör
+`mvn test`. De rör aldrig din riktiga databas.
 
 ## Sidor
 
 | URL | Mall | Vad |
 |---|---|---|
 | `/` | `login.html` | Inloggning (Spring Security). Demokonto: `demo@fiskeexperten.se` / `demo1234` |
-| `/registrera` | `registrera.html` | Skapa konto (användarna ligger i minnet tills databasen finns) |
+| `/registrera` | `registrera.html` | Skapa konto |
 | `POST /logga-ut` | | Loggar ut |
-| `/karta` | `karta.html` | Karta + lista med fångster + panel för ny fångst |
+| `/karta` | `karta.html` | Karta + lista med den inloggade användarens fångster + panel för ny fångst |
 | `/karta?q=gädda` | | Sök på art eller plats |
 | `POST /fangster` | | Sparar en ny fångst (med validering) |
 | `/karta?redigera=5` | | Öppnar panelen med fångst 5 ifylld |
@@ -36,8 +62,13 @@ I IntelliJ: öppna mappen → högerklicka `FiskeExpertenApplication` → **Run*
 ```
 src/main/java/se/fiskeexperten/
 ├── FiskeExpertenApplication.java
-├── model/Fangst.java            ← fångst (blir JPA-entitet senare)
-├── service/FangstService.java   ← fångster i minnet + exempeldata
+├── config/SecurityConfig.java   ← inloggning (Spring Security)
+├── config/DemoData.java         ← demokonto + exempelfångster i en tom databas
+├── model/Fangst.java            ← JPA-entitet, position som PostGIS-punkt
+├── model/Anvandare.java         ← JPA-entitet, lösenordet som hash
+├── repository/                  ← Spring Data-repositories
+├── service/FangstService.java   ← fångster i databasen, alltid per ägare
+├── service/AnvandarService.java ← användare i databasen (UserDetailsService)
 ├── service/BildLagring.java     ← interface för bilder (S3-versionen implementerar detta)
 ├── service/MinnesBildLagring.java ← bilder i minnet tills S3 är på plats
 └── web/
@@ -63,8 +94,5 @@ och i panelen "Registrera fångst" klickar man på kartan för att välja positi
 
 ## Inte klart än (finns på Trello)
 
-- **Databas:** fångsterna ligger i minnet och försvinner vid omstart → PostgreSQL/PostGIS
-- **Bilder:** sparas i minnet → skapa `S3BildLagring implements BildLagring`
+- **Bilder:** sparas i minnet och försvinner vid omstart (databasen minns bara bildnyckeln) → skapa `S3BildLagring implements BildLagring`
 - **AI:** knappen "Identifiera art med AI" är avstängd → Spring AI
-- **Användare i databasen:** inloggningen använder Spring Security, men kontona ligger i minnet → byt `UserDetailsManager` i `SecurityConfig` mot en databasversion
-- 

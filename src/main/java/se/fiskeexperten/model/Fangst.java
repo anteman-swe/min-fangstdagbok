@@ -1,53 +1,93 @@
 package se.fiskeexperten.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * En registrerad fångst.
- * Just nu en vanlig klass i minnet – blir en JPA-entitet när databasen är på plats
- * (Trello: "Datamodell: Fångst").
+ * En registrerad fångst, sparad i tabellen "fangst".
+ * Positionen ligger som en PostGIS-punkt (geometry(Point, 4326)); getLat()/getLng()
+ * plockar ut koordinaterna så att mallar och controllers kan fortsätta använda dem som förut.
  */
+@Entity
+@Table(name = "fangst")
 public class Fangst {
 
     private static final Locale SVENSKA = Locale.of("sv", "SE");
     private static final String[] MANADER =
             {"jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"};
+    /** WGS 84 – samma koordinatsystem som Leaflet och OpenStreetMap. */
+    private static final GeometryFactory GEOMETRI = new GeometryFactory(new PrecisionModel(), 4326);
 
-    private final Long id;
-    private final String art;
-    private final Double viktKg;
-    private final Integer langdCm;
-    private final String plats;
-    private final LocalDate datum;
-    private final double lat;
-    private final double lng;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /** Användaren som äger fångsten (främmande nyckel till anvandare.id). */
+    @Column(name = "agare_id", nullable = false)
+    private Long agareId;
+
+    @Column(nullable = false, length = 60)
+    private String art;
+
+    @Column(name = "vikt_kg")
+    private Double viktKg;
+
+    @Column(name = "langd_cm")
+    private Integer langdCm;
+
+    @Column(nullable = false, length = 80)
+    private String plats;
+
+    @Column(nullable = false)
+    private LocalDate datum;
+
+    @Column(name = "punkt", nullable = false, columnDefinition = "geometry(Point,4326)")
+    private Point punkt;
+
     /** Nyckel till bilden i BildLagring (null = ingen bild). */
-    private final String bildNyckel;
+    @Column(name = "bild_nyckel")
+    private String bildNyckel;
 
-    public Fangst(Long id, String art, Double viktKg, Integer langdCm, String plats,
+    /** Krävs av JPA. */
+    protected Fangst() {
+    }
+
+    /** id är null för en ny fångst – databasen delar ut det. */
+    public Fangst(Long id, Long agareId, String art, Double viktKg, Integer langdCm, String plats,
                   LocalDate datum, double lat, double lng, String bildNyckel) {
         this.id = id;
+        this.agareId = agareId;
         this.art = art;
         this.viktKg = viktKg;
         this.langdCm = langdCm;
         this.plats = plats;
         this.datum = datum;
-        this.lat = lat;
-        this.lng = lng;
+        this.punkt = GEOMETRI.createPoint(new Coordinate(lng, lat)); // x = longitud, y = latitud
         this.bildNyckel = bildNyckel;
     }
 
     public Long getId() { return id; }
+    public Long getAgareId() { return agareId; }
     public String getArt() { return art; }
     public Double getViktKg() { return viktKg; }
     public Integer getLangdCm() { return langdCm; }
     public String getPlats() { return plats; }
     public LocalDate getDatum() { return datum; }
-    public double getLat() { return lat; }
-    public double getLng() { return lng; }
+    public double getLat() { return punkt.getY(); }
+    public double getLng() { return punkt.getX(); }
     public String getBildNyckel() { return bildNyckel; }
 
     // ---- Hjälpmetoder för visning i Thymeleaf ----

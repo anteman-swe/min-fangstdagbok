@@ -1,25 +1,25 @@
 package se.fiskeexperten.web;
 
 import jakarta.validation.Valid;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-
-import java.util.Locale;
+import se.fiskeexperten.service.AnvandarService;
 
 /** Skapa konto. */
 @Controller
 public class RegistreringController {
 
-    private final UserDetailsManager anvandare;
+    private static final String UPPTAGEN = "Det finns redan ett konto med den e-postadressen";
+
+    private final AnvandarService anvandare;
     private final PasswordEncoder losenordsKodare;
 
-    public RegistreringController(UserDetailsManager anvandare, PasswordEncoder losenordsKodare) {
+    public RegistreringController(AnvandarService anvandare, PasswordEncoder losenordsKodare) {
         this.anvandare = anvandare;
         this.losenordsKodare = losenordsKodare;
     }
@@ -37,19 +37,21 @@ public class RegistreringController {
             result.rejectValue("losenordIgen", "losenord.olika", "Lösenorden är inte likadana");
         }
 
-        String epost = form.getEmail() == null ? "" : form.getEmail().trim().toLowerCase(Locale.ROOT);
-        if (!result.hasFieldErrors("email") && anvandare.userExists(epost)) {
-            result.rejectValue("email", "email.upptagen", "Det finns redan ett konto med den e-postadressen");
+        if (!result.hasFieldErrors("email") && anvandare.finns(form.getEmail())) {
+            result.rejectValue("email", "email.upptagen", UPPTAGEN);
         }
 
         if (result.hasErrors()) {
             return "registrera";
         }
 
-        anvandare.createUser(User.withUsername(epost)
-                .password(losenordsKodare.encode(form.getLosenord()))
-                .roles("USER")
-                .build());
+        try {
+            anvandare.skapa(form.getEmail(), losenordsKodare.encode(form.getLosenord()));
+        } catch (DataIntegrityViolationException e) {
+            // Någon hann registrera samma adress mellan kontrollen och sparandet (unik nyckel i databasen)
+            result.rejectValue("email", "email.upptagen", UPPTAGEN);
+            return "registrera";
+        }
 
         return "redirect:/?skapad";
     }

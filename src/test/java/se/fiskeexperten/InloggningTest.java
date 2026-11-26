@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(PostGisTestConfig.class)
 class InloggningTest {
 
     private static final String DEMO_EPOST = "demo@fiskeexperten.se";
@@ -68,7 +70,8 @@ class InloggningTest {
 
     @Test
     void inloggadAnvandareKommerInTillKartan() throws Exception {
-        mockMvc.perform(get("/karta").with(user("nagon@exempel.se").roles("USER")))
+        // Demokontot läggs in av DemoData vid start, så användaren finns i databasen
+        mockMvc.perform(get("/karta").with(user(DEMO_EPOST).roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("karta"));
     }
