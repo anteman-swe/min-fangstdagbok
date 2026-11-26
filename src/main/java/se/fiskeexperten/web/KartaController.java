@@ -79,7 +79,16 @@ public class KartaController {
 
         // TODO (Trello: "Att kolla fiskart från bilden med AI"): skicka bilden till Spring AI
         String bildNyckel = sparaBildOmFinns(form);
-        Fangst ny = fangstService.spara(agare, form, bildNyckel);
+        Fangst ny;
+        try {
+            ny = fangstService.spara(agare, form, bildNyckel);
+        } catch (RuntimeException e) {
+            // Sparandet misslyckades: släng den nyuppladdade bilden så att den inte blir hängande utan fångst
+            if (bildNyckel != null) {
+                bildLagring.radera(bildNyckel);
+            }
+            throw e;
+        }
 
         redirect.addFlashAttribute("meddelande", ny.getArt() + " sparad!");
         redirect.addAttribute("vald", ny.getId());
