@@ -13,7 +13,9 @@ public class RegistreringForm {
     private String email;
 
     @NotBlank(message = "Välj ett lösenord")
-    @Size(min = 8, max = 72, message = "Lösenordet måste vara 8–72 tecken")
+    @Size(min = 8, message = "Lösenordet måste vara minst 8 tecken")
+    // BCrypt klarar högst 72 byte. Kontrollen sker här, före PasswordEncoder.encode() i controllern.
+    @MaxUtf8Bytes(value = 72, message = "Lösenordet är för långt (högst 72 byte – å, ä och ö räknas som 2)")
     private String losenord;
 
     @NotBlank(message = "Skriv lösenordet igen")
