@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "fiskeexperten.demo.losenord=demo1234"
 })
 @AutoConfigureMockMvc
+@Import(PostGisTestConfig.class)
 class InloggningTest {
 
     private static final String DEMO_EPOST = "demo@fiskeexperten.se";
@@ -78,7 +80,8 @@ class InloggningTest {
 
     @Test
     void inloggadAnvandareKommerInTillKartan() throws Exception {
-        mockMvc.perform(get("/karta").with(user("nagon@exempel.se").roles("USER")))
+        // Demokontot läggs in av DemoData vid start, så användaren finns i databasen
+        mockMvc.perform(get("/karta").with(user(DEMO_EPOST).roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("karta"));
     }
@@ -198,6 +201,36 @@ class InloggningTest {
         } catch (UsernameNotFoundException e) {
             return false;
         }
+    }
+
+    @Test
+    void epostPaExakt120TeckenAccepteras() throws Exception {
+        // 60 + "@" + 56 + ".se" = 120 tecken: giltig enligt @Email och precis inom databasens VARCHAR(120)
+        String epost = "a".repeat(60) + "@" + "b".repeat(56) + ".se";
+        assertThat(epost).hasSize(120);
+
+        mockMvc.perform(post("/registrera").with(csrf())
+                        .param("email", epost)
+                        .param("losenord", "hemligt-nog")
+                        .param("losenordIgen", "hemligt-nog"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/?skapad"));
+    }
+
+    @Test
+    void epostPa121TeckenVisarFelPaEpostfaltetOchSparasInte() throws Exception {
+        String epost = "a".repeat(60) + "@" + "b".repeat(57) + ".se";
+        assertThat(epost).hasSize(121);
+
+        mockMvc.perform(post("/registrera").with(csrf())
+                        .param("email", epost)
+                        .param("losenord", "hemligt-nog")
+                        .param("losenordIgen", "hemligt-nog"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("registrera"))
+                .andExpect(model().attributeHasFieldErrors("registreringForm", "email"));
+
+        assertThat(anvandareFinns(epost)).isFalse();
     }
 
     @Test

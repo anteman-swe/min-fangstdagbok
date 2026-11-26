@@ -9,7 +9,8 @@ public class RegistreringForm {
 
     @NotBlank(message = "Ange din e-postadress")
     @Email(message = "Ange en giltig e-postadress")
-    @Size(max = 120, message = "Högst 120 tecken")
+    // Längdgränsen (120) kontrolleras i RegistreringController på den normaliserade adressen,
+    // dvs. samma värde som sparas (trimmad, gemener) – inte på det råa fältet.
     private String email;
 
     @NotBlank(message = "Välj ett lösenord")
