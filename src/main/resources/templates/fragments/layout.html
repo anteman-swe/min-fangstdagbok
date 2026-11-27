@@ -1,42 +1,64 @@
-<!DOCTYPE html>
 <!-- Gemensamma delar som alla sidor använder -->
-<html lang="sv" xmlns:th="http://www.thymeleaf.org">
 
-<head th:fragment="head(titel)">
-    <meta charset="utf-8">
+<!-- <head>: titel, typsnitt, Tailwind (output.css) och Leaflet (kartan) -->
+<th:block th:fragment="head(pageTitle, pageDescription)" xmlns:th="http://www.thymeleaf.org">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${titel}">FiskeExperten</title>
-    <meta name="description" content="Logga dina fångster på kartan">
-    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
-
+    <meta name="description" th:content="${pageDescription}">
+    <meta property="og:title" th:content="${pageTitle} + ' – FiskeExperten'">
+    <meta property="og:description" th:content="${pageDescription}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <title th:text="${pageTitle} + ' – FiskeExperten'">FiskeExperten</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%F0%9F%90%9F%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
-
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Leaflet: kartbibliotek (OpenStreetMap) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</th:block>
 
-    <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-
-<body>
-
-<header th:fragment="header(aktiv)" class="topbar">
-    <a th:href="@{/karta}" class="brand">
-        <svg th:replace="~{fragments/icons :: fish('icon')}"></svg> FiskeExperten
+<!-- Toppmenyn på inloggade sidor. aktiv = 'karta' eller 'om' -->
+<header th:fragment="header(aktiv)" xmlns:th="http://www.thymeleaf.org"
+        class="sticky top-0 z-[1100] flex items-center gap-6 bg-lake px-6 py-4 text-lake-foreground">
+    <a th:href="@{/karta}" class="flex items-center gap-2 font-semibold">
+        <svg th:replace="~{fragments/icons :: fish('h-5 w-5 shrink-0')}"></svg> FiskeExperten
     </a>
-    <nav class="topbar__nav">
-        <a th:href="@{/karta}" th:classappend="${aktiv == 'karta'} ? 'active'">Karta</a>
-        <a th:href="@{/karta} + '#fangster'">Mina fångster</a>
-        <a th:href="@{/om}" th:classappend="${aktiv == 'om'} ? 'active'">Om</a>
+    <nav aria-label="Huvudmeny" class="hidden gap-5 text-sm sm:flex">
+        <a th:href="@{/karta}" class="transition hover:opacity-100"
+           th:classappend="${aktiv == 'karta'} ? 'opacity-100' : 'opacity-80'">Karta</a>
+        <a th:href="@{/karta} + '#fangster'" class="opacity-80 transition hover:opacity-100">Mina fångster</a>
+        <a th:href="@{/om}" class="transition hover:opacity-100"
+           th:classappend="${aktiv == 'om'} ? 'opacity-100' : 'opacity-80'">Om</a>
     </nav>
     <!-- Utloggning kräver POST (CSRF-skyddad), därför ett formulär i stället för en länk -->
-    <form th:action="@{/logga-ut}" method="post" class="topbar__logout">
-        <button type="submit" class="topbar__logout-btn">
-            <svg th:replace="~{fragments/icons :: logOut('icon icon-sm')}"></svg> Logga ut
+    <form th:action="@{/logga-ut}" method="post" class="ml-auto">
+        <button type="submit" class="flex cursor-pointer items-center gap-1 text-sm opacity-80 transition hover:opacity-100">
+            <svg th:replace="~{fragments/icons :: logOut('h-4 w-4 shrink-0')}"></svg> Logga ut
         </button>
     </form>
 </header>
 
-</body>
-</html>
+<!-- Vänstra halvan på inloggning/registrering: gradient, sol och vågor (döljs på mobil) -->
+<section th:fragment="authHero(rubrik, text)" xmlns:th="http://www.thymeleaf.org"
+         class="relative hidden overflow-hidden bg-dawn p-12 text-lake-foreground lg:flex lg:flex-col">
+    <div class="flex items-center gap-2 text-lg font-semibold">
+        <svg th:replace="~{fragments/icons :: fish('h-6 w-6 shrink-0')}"></svg> FiskeExperten
+    </div>
+    <div class="relative z-10 mt-auto mb-32 max-w-md">
+        <h1 class="text-5xl font-bold leading-tight" th:text="${rubrik}">Varje fångst har en plats.</h1>
+        <p class="mt-4 text-lg opacity-85" th:text="${text}">Spara bild, art och position.</p>
+    </div>
+    <div class="absolute right-24 top-32 h-28 w-28 rounded-full bg-accent/70 blur-sm"></div>
+    <svg aria-hidden="true" viewBox="0 0 600 120" class="absolute bottom-0 left-0 w-full text-lake" preserveAspectRatio="none">
+        <path fill="currentColor" opacity=".5" d="M0 60 Q75 20 150 60 T300 60 T450 60 T600 60 V120 H0Z"/>
+        <path fill="currentColor" d="M0 85 Q75 50 150 85 T300 85 T450 85 T600 85 V120 H0Z"/>
+    </svg>
+</section>
+
+<!-- Logga i formulärkortet (syns bara på mobil, där vänstra halvan är dold) -->
+<div th:fragment="mobilLogga" xmlns:th="http://www.thymeleaf.org" class="mb-6 flex items-center gap-2 text-primary lg:hidden">
+    <svg th:replace="~{fragments/icons :: fish('h-6 w-6 shrink-0')}"></svg>
+    <span class="font-semibold">FiskeExperten</span>
+</div>

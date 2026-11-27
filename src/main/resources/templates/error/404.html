@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="sv" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Sidan finns inte – FiskeExperten')}"></head>
+<head><th:block th:replace="~{fragments/layout :: head('Sidan finns inte', 'Sidan hittades inte.')}"></th:block></head>
 <body>
-<main class="center-page">
-    <div class="center-page__box">
-        <h1 class="big-number">404</h1>
-        <h2 class="mt-4">Sidan hittades inte</h2>
-        <p class="small muted mt-1">Sidan du letar efter finns inte eller har flyttats.</p>
-        <a th:href="@{/karta}" class="btn btn-primary mt-6">Till kartan</a>
+<main class="flex min-h-screen items-center justify-center p-4">
+    <div class="max-w-md text-center">
+        <h1 class="text-7xl font-bold">404</h1>
+        <h2 class="mt-4 text-xl font-semibold">Sidan hittades inte</h2>
+        <p class="mt-2 text-sm text-muted-foreground">Sidan du letar efter finns inte eller har flyttats.</p>
+        <a th:href="@{/karta}" class="mt-6 inline-block rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90">Till kartan</a>
     </div>
 </main>
 </body>

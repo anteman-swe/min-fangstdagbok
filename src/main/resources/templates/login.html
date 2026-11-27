@@ -1,61 +1,39 @@
 <!DOCTYPE html>
 <html lang="sv" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Logga in – FiskeExperten')}"></head>
+<head><th:block th:replace="~{fragments/layout :: head('Logga in', 'Logga in på FiskeExperten och se dina fångster på kartan.')}"></th:block></head>
 <body>
+<main class="grid min-h-screen lg:grid-cols-2">
+    <section th:replace="~{fragments/layout :: authHero('Varje fångst har en plats.', 'Spara bild, art och position. Se alla dina fiskeplatser på kartan.')}"></section>
 
-<main class="login">
+    <section class="flex items-center justify-center p-6">
+        <!-- Spring Security tar emot formuläret på POST /login (se SecurityConfig) -->
+        <form th:action="@{/login}" method="post" class="w-full max-w-sm rounded-3xl bg-card p-8 shadow-soft">
+            <div th:replace="~{fragments/layout :: mobilLogga}"></div>
+            <h2 class="text-3xl font-bold">Välkommen tillbaka</h2>
+            <p class="mt-1 text-sm text-muted-foreground">Logga in för att se dina fångster.</p>
 
-    <!-- Vänster sida: gradient med vågor (döljs på mobil) -->
-    <section class="login-hero">
-        <div class="brand brand--lg">
-            <svg th:replace="~{fragments/icons :: fish('icon icon-lg')}"></svg> FiskeExperten
-        </div>
-        <div class="login-hero__text">
-            <h1>Varje fångst har en plats.</h1>
-            <p>Spara bild, art och position. Se alla dina fiskeplatser på kartan.</p>
-        </div>
-        <div class="login-hero__sun"></div>
-        <svg class="waves" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
-            <path fill="currentColor" opacity=".5" d="M0 60 Q75 20 150 60 T300 60 T450 60 T600 60 V120 H0Z"/>
-            <path fill="currentColor" d="M0 85 Q75 50 150 85 T300 85 T450 85 T600 85 V120 H0Z"/>
-        </svg>
-    </section>
+            <p th:if="${param.fel}" role="alert" class="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">Fel e-postadress eller lösenord.</p>
+            <p th:if="${param.utloggad}" role="status" class="mt-4 rounded-xl bg-muted p-3 text-sm">Du är utloggad.</p>
+            <p th:if="${param.skapad}" role="status" class="mt-4 rounded-xl bg-muted p-3 text-sm">Kontot är skapat – logga in nedan.</p>
 
-    <!-- Höger sida: inloggningsformulär -->
-    <section class="login-form-wrap">
-        <form class="login-card" th:action="@{/login}" method="post">
-            <div class="brand brand--mobile">
-                <svg th:replace="~{fragments/icons :: fish('icon')}"></svg> FiskeExperten
+            <label for="email" class="mt-6 block text-sm font-medium">E-post</label>
+            <div class="mt-1 flex items-center gap-2 rounded-xl border border-input bg-background px-3 focus-within:border-ring">
+                <svg th:replace="~{fragments/icons :: mail('h-4 w-4 shrink-0 text-muted-foreground')}"></svg>
+                <input id="email" name="email" type="email" required autocomplete="email" placeholder="du@exempel.se" class="w-full bg-transparent py-3 outline-none">
             </div>
 
-            <h2>Välkommen tillbaka</h2>
-            <p class="muted small mt-1">Logga in för att se dina fångster.</p>
-
-            <p class="error mt-4" th:if="${param.fel}" role="alert">Fel e-postadress eller lösenord.</p>
-            <p class="small mt-4" th:if="${param.utloggad}" role="status">Du är utloggad.</p>
-            <p class="small mt-4" th:if="${param.skapad}" role="status">Kontot är skapat – logga in nedan.</p>
-
-            <label for="email" class="label mt-6">E-post</label>
-            <div class="input-icon">
-                <svg th:replace="~{fragments/icons :: mail('icon icon-sm muted')}"></svg>
-                <input id="email" name="email" type="email" placeholder="du@exempel.se" autocomplete="email" required>
+            <label for="losenord" class="mt-4 block text-sm font-medium">Lösenord</label>
+            <div class="mt-1 flex items-center gap-2 rounded-xl border border-input bg-background px-3 focus-within:border-ring">
+                <svg th:replace="~{fragments/icons :: lock('h-4 w-4 shrink-0 text-muted-foreground')}"></svg>
+                <input id="losenord" name="losenord" type="password" required autocomplete="current-password" placeholder="••••••••" class="w-full bg-transparent py-3 outline-none">
             </div>
 
-            <label for="losenord" class="label mt-4">Lösenord</label>
-            <div class="input-icon">
-                <svg th:replace="~{fragments/icons :: lock('icon icon-sm muted')}"></svg>
-                <input id="losenord" name="losenord" type="password" placeholder="••••••••" autocomplete="current-password" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block mt-6">Logga in</button>
-
-            <p class="center small muted mt-4">
-                Inget konto? <a th:href="@{/registrera}" class="link">Skapa konto</a>
+            <button type="submit" class="mt-6 w-full cursor-pointer rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition hover:opacity-90">Logga in</button>
+            <p class="mt-4 text-center text-sm text-muted-foreground">
+                Inget konto? <a th:href="@{/registrera}" class="font-semibold text-primary hover:underline">Skapa konto</a>
             </p>
         </form>
     </section>
-
 </main>
-
 </body>
 </html>

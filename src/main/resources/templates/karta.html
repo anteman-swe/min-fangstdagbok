@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html lang="sv" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Karta & fångster – FiskeExperten')}"></head>
+<head><th:block th:replace="~{fragments/layout :: head('Karta & fångster', 'Se dina fångster på kartan och registrera nya.')}"></th:block></head>
 <body>
 
 <header th:replace="~{fragments/layout :: header('karta')}"></header>
 
 <!-- ===== Karta ===== -->
-<section class="map-section">
+<section class="relative isolate h-[60vh] bg-land" aria-label="Karta med dina fångster">
     <!-- Leaflet ritar kartan här. data-vald = fångst som ska öppnas direkt (t.ex. efter att man sparat) -->
-    <div id="karta" th:data-vald="${vald}"></div>
+    <div id="karta" class="absolute inset-0 bg-water" th:data-vald="${vald}"></div>
 
-    <button type="button" class="fab" data-oppna-form>
-        <svg th:replace="~{fragments/icons :: plus('icon')}"></svg> Ny fångst
+    <button type="button" data-oppna-form
+            class="absolute right-6 bottom-6 z-[1001] flex cursor-pointer items-center gap-2 rounded-full bg-accent px-5 py-3 font-semibold text-accent-foreground shadow-soft transition hover:scale-105">
+        <svg th:replace="~{fragments/icons :: plus('h-5 w-5 shrink-0')}"></svg> Ny fångst
     </button>
 </section>
 
-<!-- Meddelande efter att en fångst sparats -->
-<div class="toast" th:if="${meddelande}" th:text="${meddelande}" role="status">Sparad!</div>
+<!-- Meddelande efter att en fångst sparats/ändrats/raderats -->
+<div th:if="${meddelande}" th:text="${meddelande}" role="status"
+     class="toast fixed bottom-6 left-1/2 z-[1200] -translate-x-1/2 rounded-full bg-lake px-5 py-3 font-semibold text-lake-foreground shadow-soft">Sparad!</div>
 
 <!-- ===== Lista med fångster ===== -->
-<section class="container" id="fangster">
-    <div class="list-head">
+<section id="fangster" class="mx-auto max-w-6xl scroll-mt-16 p-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h2>Alla fångster</h2>
-            <p class="muted" th:text="${#lists.size(fangster)} + ' registrerade'">4 registrerade</p>
+            <h2 class="text-3xl font-bold">Alla fångster</h2>
+            <p class="text-muted-foreground" th:text="${#lists.size(fangster)} + ' registrerade'">4 registrerade</p>
         </div>
-        <form class="search" th:action="@{/karta}" method="get" role="search">
-            <svg th:replace="~{fragments/icons :: search('icon icon-sm muted')}"></svg>
-            <input type="search" name="q" th:value="${q}" placeholder="Sök art eller plats" aria-label="Sök art eller plats">
+        <form th:action="@{/karta}" method="get" role="search"
+              class="flex items-center gap-2 rounded-xl border border-input bg-card px-3 focus-within:border-ring">
+            <svg th:replace="~{fragments/icons :: search('h-4 w-4 shrink-0 text-muted-foreground')}"></svg>
+            <input type="search" name="q" th:value="${q}" placeholder="Sök art eller plats" aria-label="Sök art eller plats" class="bg-transparent py-2 outline-none">
         </form>
     </div>
 
-    <p class="empty muted" th:if="${#lists.isEmpty(fangster)}">
+    <p th:if="${#lists.isEmpty(fangster)}" class="mt-6 text-muted-foreground">
         Inga fångster hittades<span th:if="${not #strings.isEmpty(q)}" th:text="| för ”${q}”|"></span>.
-        <a th:href="@{/karta}" class="link">Visa alla</a>
+        <a th:href="@{/karta}" class="font-semibold text-primary hover:underline">Visa alla</a>
     </p>
 
-    <div class="catch-grid">
+    <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Klick på ett kort öppnar fångsten på kartan (karta.js läser data-attributen) -->
-        <article class="catch-card" tabindex="0" th:each="f : ${fangster}"
+        <article th:each="f : ${fangster}" tabindex="0" data-fangst
+                 class="cursor-pointer overflow-hidden rounded-2xl bg-card shadow-soft transition hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                  th:data-id="${f.id}"
                  th:data-art="${f.art}"
                  th:data-matt="${f.matt}"
@@ -48,32 +52,33 @@
                  th:data-lat="${f.lat}"
                  th:data-lng="${f.lng}"
                  th:data-bild="${f.harBild} ? @{/fangster/{id}/bild(id=${f.id},v=${f.bildNyckel})}">
-            <div class="fisk-bild catch-card__bild" th:classappend="${f.harBild} ? '' : ${f.stil}">
-                <img th:if="${f.harBild}" class="fisk-foto" alt=""
+            <div class="flex h-36 items-center justify-center overflow-hidden text-lake-foreground" th:classappend="${f.harBild} ? '' : ${f.stil}">
+                <img th:if="${f.harBild}" class="h-full w-full object-cover" alt=""
                      th:src="@{/fangster/{id}/bild(id=${f.id},v=${f.bildNyckel})}" th:alt="${f.art}">
                 <th:block th:unless="${f.harBild}">
-                    <svg th:replace="~{fragments/icons :: fish('icon icon-2xl')}"></svg>
+                    <svg th:replace="~{fragments/icons :: fish('h-14 w-14')}"></svg>
                 </th:block>
             </div>
-            <div class="catch-card__body">
-                <div class="row-between">
-                    <h3 th:text="${f.art}">Gädda</h3>
-                    <span class="small muted" th:text="${f.datumText}">12 nov</span>
+            <div class="p-4">
+                <div class="flex items-baseline justify-between gap-2">
+                    <h3 class="text-xl font-bold" th:text="${f.art}">Gädda</h3>
+                    <span class="text-sm text-muted-foreground" th:text="${f.datumText}">12 nov</span>
                 </div>
-                <p class="small mt-1" th:text="${f.matt}">4,2 kg · 82 cm</p>
-                <p class="plats small muted">
-                    <svg th:replace="~{fragments/icons :: mapPin('icon icon-xs')}"></svg>
+                <p class="mt-1 text-sm" th:text="${f.matt}">4,2 kg · 82 cm</p>
+                <p class="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+                    <svg th:replace="~{fragments/icons :: mapPin('h-3 w-3 shrink-0')}"></svg>
                     <span th:text="${f.plats}">Mälaren, Västerås</span>
                 </p>
                 <!-- Redigera / radera (klick här ska inte öppna kartan, se karta.js) -->
-                <div class="card-actions" data-ingen-karta>
-                    <a th:href="@{/karta(redigera=${f.id})}" class="icon-btn" title="Redigera" aria-label="Redigera">
-                        <svg th:replace="~{fragments/icons :: pencil('icon icon-sm')}"></svg>
+                <div data-ingen-karta class="mt-3 flex justify-end gap-1 border-t border-border pt-2">
+                    <a th:href="@{/karta(redigera=${f.id})}" title="Redigera" aria-label="Redigera"
+                       class="inline-flex rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                        <svg th:replace="~{fragments/icons :: pencil('h-4 w-4')}"></svg>
                     </a>
-                    <form th:action="@{/fangster/{id}/radera(id=${f.id})}" method="post" data-bekrafta-radera
-                          th:data-art="${f.art}">
-                        <button type="submit" class="icon-btn icon-btn--fara" title="Radera" aria-label="Radera">
-                            <svg th:replace="~{fragments/icons :: trash('icon icon-sm')}"></svg>
+                    <form th:action="@{/fangster/{id}/radera(id=${f.id})}" method="post" data-bekrafta-radera th:data-art="${f.art}">
+                        <button type="submit" title="Radera" aria-label="Radera"
+                                class="inline-flex cursor-pointer rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                            <svg th:replace="~{fragments/icons :: trash('h-4 w-4')}"></svg>
                         </button>
                     </form>
                 </div>
@@ -82,84 +87,8 @@
     </div>
 </section>
 
-<!-- ===== Panel: Registrera fångst ===== -->
-<div id="drawer" class="drawer" th:classappend="${formOppet} ? 'is-open'"
-     th:data-avbryt-url="${fangstForm.redigerar} ? @{/karta}">
-    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-titel">
-        <div class="drawer__head">
-            <h2 id="drawer-titel" th:text="${fangstForm.redigerar} ? 'Redigera fångst' : 'Registrera fångst'">Registrera fångst</h2>
-            <button type="button" class="icon-btn" data-stang-form aria-label="Stäng">
-                <svg th:replace="~{fragments/icons :: x('icon')}"></svg>
-            </button>
-        </div>
-
-        <form th:action="${fangstForm.redigerar} ? @{/fangster/{id}(id=${fangstForm.id})} : @{/fangster}" th:object="${fangstForm}" method="post" enctype="multipart/form-data" novalidate>
-
-            <!-- Bild: klicka eller dra hit -->
-            <label class="dropzone" id="dropzone">
-                <img id="bild-preview" alt="Förhandsvisning av bilden"
-                     th:src="${redigerad != null and redigerad.harBild} ? @{/fangster/{id}/bild(id=${redigerad.id},v=${redigerad.bildNyckel})}">
-                <svg th:replace="~{fragments/icons :: upload('icon')}"></svg>
-                <span class="small" th:text="${redigerad != null and redigerad.harBild} ? 'Klicka för att byta bild' : 'Dra hit en bild eller klicka'">Dra hit en bild eller klicka</span>
-                <input type="file" id="bild" name="bild" accept="image/*">
-            </label>
-            <p class="error" th:if="${#fields.hasErrors('bild')}" th:errors="*{bild}"></p>
-
-            <!-- TODO (Trello: AI-kortet): koppla till Spring AI -->
-            <button type="button" class="btn btn-secondary btn-block mt-3" disabled title="Kommer snart">
-                <svg th:replace="~{fragments/icons :: sparkles('icon icon-sm accent')}"></svg> Identifiera art med AI
-            </button>
-
-            <div class="field">
-                <label for="art" class="label">Art</label>
-                <input type="text" th:field="*{art}" th:errorclass="has-error" placeholder="t.ex. Gädda">
-                <p class="error" th:if="${#fields.hasErrors('art')}" th:errors="*{art}"></p>
-            </div>
-
-            <div class="field-row">
-                <div class="field">
-                    <label for="vikt" class="label">Vikt (kg)</label>
-                    <input type="number" step="0.1" min="0" th:field="*{vikt}" th:errorclass="has-error" placeholder="4,2">
-                    <p class="error" th:if="${#fields.hasErrors('vikt')}" th:errors="*{vikt}"></p>
-                </div>
-                <div class="field">
-                    <label for="langd" class="label">Längd (cm)</label>
-                    <input type="number" step="1" min="0" th:field="*{langd}" th:errorclass="has-error" placeholder="82">
-                    <p class="error" th:if="${#fields.hasErrors('langd')}" th:errors="*{langd}"></p>
-                </div>
-            </div>
-
-            <div class="field">
-                <label for="datum" class="label">Datum</label>
-                <input type="date" th:field="*{datum}" th:errorclass="has-error">
-                <p class="error" th:if="${#fields.hasErrors('datum')}" th:errors="*{datum}"></p>
-            </div>
-
-            <div class="field">
-                <label for="plats" class="label">Plats <span class="muted">(valfritt)</span></label>
-                <input type="text" th:field="*{plats}" th:errorclass="has-error" placeholder="t.ex. Mälaren, Västerås">
-                <p class="error" th:if="${#fields.hasErrors('plats')}" th:errors="*{plats}"></p>
-            </div>
-
-            <div class="field">
-                <span class="label">Position</span>
-                <div id="position-karta" class="position-karta"></div>
-                <p id="position-text" class="position-text">
-                    <svg th:replace="~{fragments/icons :: mapPin('icon icon-sm accent')}"></svg>
-                    <span id="position-varde">Klicka på kartan för att välja position</span>
-                </p>
-                <input type="hidden" th:field="*{lat}">
-                <input type="hidden" th:field="*{lng}">
-                <p class="error" th:if="${#fields.hasErrors('lat') or #fields.hasErrors('lng')}">
-                    Klicka på kartan för att välja position
-                </p>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block mt-6"
-                    th:text="${fangstForm.redigerar} ? 'Spara ändringar' : 'Spara fångst'">Spara fångst</button>
-        </form>
-    </aside>
-</div>
+<!-- ===== Panel: Registrera / redigera fångst ===== -->
+<th:block th:replace="~{catch-form :: catchForm}"></th:block>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:src="@{/js/karta.js}"></script>
