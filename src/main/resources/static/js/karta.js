@@ -14,7 +14,7 @@
   // Lucide-ikoner som text (behövs för Leaflet, som bygger HTML själv)
   const SVG_START = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   const PIN_SVG = SVG_START + '><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
-  const FISK_SVG = SVG_START + ' fill="none" stroke="currentColor" class="icon icon-xl"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"/><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98"/></svg>';
+  const FISK_SVG = SVG_START + ' fill="none" stroke="currentColor"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"/><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98"/></svg>';
 
   /** Skyddar mot att användarens text tolkas som HTML. */
   function esc(text) {
@@ -91,14 +91,14 @@
 
   function popupHtml(d) {
     const bild = d.bild
-        ? '<div class="fisk-bild popup-bild"><img class="fisk-foto" src="' + esc(d.bild) + '" alt=""></div>'
-        : '<div class="fisk-bild popup-bild ' + esc(d.stil) + '">' + FISK_SVG + '</div>';
+      ? '<div class="popup-bild"><img src="' + esc(d.bild) + '" alt=""></div>'
+      : '<div class="popup-bild ' + esc(d.stil) + '">' + FISK_SVG + '</div>';
     return bild +
-        '<div class="popup-body">' +
-        '<h3>' + esc(d.art) + '</h3>' +
-        '<p class="small muted">' + esc(d.matt) + ' · ' + esc(d.datum) + '</p>' +
-        '<p class="small muted mt-1">' + esc(d.plats) + '</p>' +
-        '</div>';
+      '<div class="popup-body">' +
+      '<h3>' + esc(d.art) + '</h3>' +
+      '<p>' + esc(d.matt) + ' · ' + esc(d.datum) + '</p>' +
+      '<p>' + esc(d.plats) + '</p>' +
+      '</div>';
   }
 
   // ===== Huvudkartan =====
@@ -111,7 +111,7 @@
   const markorer = {};
   const grupp = L.featureGroup().addTo(karta);
 
-  document.querySelectorAll('.catch-card').forEach(function (kort) {
+  document.querySelectorAll('[data-fangst]').forEach(function (kort) {
     const d = kort.dataset;
     const lat = parseFloat(d.lat);
     const lng = parseFloat(d.lng);
@@ -186,10 +186,17 @@
     });
   }
 
+  // Tillgänglighet: fokus flyttas in i panelen, Tab stannar där, och fokus går tillbaka när den stängs
+  const FOKUSERBARA = 'a[href], button:not([disabled]), input:not([type="hidden"]), [tabindex]:not([tabindex="-1"])';
+  let fokusForePanel = null;
+
   function oppnaPanel() {
+    fokusForePanel = document.activeElement;
     drawer.classList.add('is-open');
     document.body.classList.add('no-scroll');
     skapaPositionKarta();
+    const stang = drawer.querySelector('[data-stang-form]');
+    if (stang) stang.focus();
     // Leaflet behöver räkna om storleken när kartan blir synlig
     setTimeout(function () { positionKarta.invalidateSize(); }, 50);
   }
@@ -199,13 +206,25 @@
     if (drawer.dataset.avbrytUrl) { window.location.href = drawer.dataset.avbrytUrl; return; }
     drawer.classList.remove('is-open');
     document.body.classList.remove('no-scroll');
+    if (fokusForePanel && fokusForePanel.focus) fokusForePanel.focus();
+  }
+
+  function hallFokusIPanelen(e) {
+    const element = Array.from(drawer.querySelectorAll(FOKUSERBARA));
+    if (element.length === 0) return;
+    const forsta = element[0];
+    const sista = element[element.length - 1];
+    if (e.shiftKey && document.activeElement === forsta) { e.preventDefault(); sista.focus(); }
+    else if (!e.shiftKey && document.activeElement === sista) { e.preventDefault(); forsta.focus(); }
   }
 
   document.querySelectorAll('[data-oppna-form]').forEach(function (b) { b.addEventListener('click', oppnaPanel); });
   document.querySelectorAll('[data-stang-form]').forEach(function (b) { b.addEventListener('click', stangPanel); });
   drawer.addEventListener('click', function (e) { if (e.target === drawer) stangPanel(); });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && drawer.classList.contains('is-open')) stangPanel();
+    if (!drawer.classList.contains('is-open')) return;
+    if (e.key === 'Escape') stangPanel();
+    else if (e.key === 'Tab') hallFokusIPanelen(e);
   });
 
   // Servern renderade sidan med panelen öppen (valideringsfel)

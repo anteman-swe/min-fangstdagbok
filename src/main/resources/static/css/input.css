@@ -1,0 +1,177 @@
+/*noinspection CssUnknownTarget*/
+@import "tailwindcss" source(none);
+/*@source ".";*/
+@source "../../templates";
+
+:root {
+    color-scheme: light;
+    --background: oklch(0.965 0.015 85);
+    --foreground: oklch(0.24 0.045 235);
+    --card: oklch(0.99 0.008 85);
+    --card-foreground: oklch(0.24 0.045 235);
+    --popover: oklch(0.99 0.008 85);
+    --popover-foreground: oklch(0.24 0.045 235);
+    --primary: oklch(0.5 0.07 170);
+    --primary-foreground: oklch(0.98 0.01 85);
+    --secondary: oklch(0.92 0.025 85);
+    --secondary-foreground: oklch(0.24 0.045 235);
+    --muted: oklch(0.93 0.018 85);
+    --muted-foreground: oklch(0.5 0.03 235);
+    --accent: oklch(0.7 0.16 55);
+    --accent-foreground: oklch(0.2 0.04 235);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.98 0 0);
+    --border: oklch(0.88 0.02 85);
+    --input: oklch(0.88 0.02 85);
+    --ring: oklch(0.5 0.07 170);
+    --lake: oklch(0.24 0.05 235);
+    --lake-light: oklch(0.38 0.06 220);
+    --lake-foreground: oklch(0.96 0.015 85);
+    --water: oklch(0.82 0.05 215);
+    --land: oklch(0.88 0.05 140);
+    --gradient-dawn: linear-gradient(180deg, oklch(0.78 0.08 60) 0%, oklch(0.55 0.07 230) 55%, oklch(0.24 0.05 235) 100%);
+    --radius: 1rem;
+    --font-body: "Manrope", system-ui, sans-serif;
+    --font-heading: "Fraunces", Georgia, serif;
+    --shadow-soft-value: 0 20px 50px -20px oklch(0.24 0.05 235 / 0.35);
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-lake: var(--lake);
+    --color-lake-light: var(--lake-light);
+    --color-lake-foreground: var(--lake-foreground);
+    --color-water: var(--water);
+    --color-land: var(--land);
+    --font-sans: var(--font-body);
+    --font-display: var(--font-heading);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 12px);
+    --radius-4xl: calc(var(--radius) + 16px);
+    --shadow-soft: var(--shadow-soft-value);
+}
+
+@layer base {
+    * {
+        border-color: var(--border);
+    }
+
+    html {
+        min-height: 100%;
+        background: var(--background);
+    }
+
+    body {
+        min-height: 100vh;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: var(--font-body);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-heading);
+    }
+}
+
+@utility bg-dawn {
+    background-image: var(--gradient-dawn);
+}
+
+/* =====================================================================
+ * Komponenter som inte går att uttrycka med Tailwind-klasser i mallarna:
+ * saker som karta.js eller Leaflet skapar, och tillstånd som JS slår av/på.
+ * (Vanlig CSS utanför lager vinner över Tailwinds utilities.)
+ * ===================================================================== */
+
+/* Formulärfält i panelen "Registrera fångst" */
+@layer components {
+    .falt {
+        @apply mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 outline-none focus:border-ring;
+    }
+    .falt.has-error {
+        border-color: var(--destructive);
+    }
+}
+
+/* Färgtoningar som visas när en fångst saknar bild (Fangst.getStil() → grad-1 … grad-4) */
+.grad-1 { background-image: linear-gradient(to bottom right, var(--primary), var(--lake-light)); }
+.grad-2 { background-image: linear-gradient(to bottom right, var(--accent), var(--primary)); }
+.grad-3 { background-image: linear-gradient(to bottom right, var(--lake-light), var(--lake)); }
+.grad-4 { background-image: linear-gradient(to bottom right, var(--primary), var(--accent)); }
+
+/* Panelen: dold tills karta.js (eller servern vid valideringsfel) lägger till .is-open */
+.drawer.is-open { display: flex; }
+.drawer__panel { animation: glid-in .2s ease-out; }
+@keyframes glid-in { from { transform: translateX(100%); } to { transform: none; } }
+body.no-scroll { overflow: hidden; }
+
+/* Bilduppladdning */
+.dropzone.is-dragover { border-color: var(--primary); }
+.dropzone img:not([src]) { display: none; }
+
+/* Meddelandet "… sparad!" tonar bort efter några sekunder */
+.toast { animation: toast-ut .4s ease-in 3.5s forwards; }
+@keyframes toast-ut { to { opacity: 0; visibility: hidden; } }
+
+/* ----- Leaflet-kartan ----- */
+
+/* Kartnål (L.divIcon i karta.js) */
+.fisk-marker { background: none; border: 0; }
+.fisk-marker svg {
+    width: 40px; height: 40px;
+    fill: var(--accent); stroke: var(--lake);
+    filter: drop-shadow(0 4px 6px oklch(0.24 0.05 235 / .4));
+    transition: transform .15s; transform-origin: bottom center;
+}
+.fisk-marker:hover svg { transform: scale(1.1); }
+
+/* Popup när man klickar på en fångst */
+.fisk-popup .leaflet-popup-content-wrapper {
+    padding: 0; overflow: hidden;
+    background: var(--card); border-radius: calc(var(--radius) + 8px); box-shadow: var(--shadow-soft-value);
+}
+.fisk-popup .leaflet-popup-content { margin: 0; font-family: var(--font-body); font-size: 1rem; line-height: 1.5; }
+.fisk-popup .leaflet-popup-tip { background: var(--card); }
+.fisk-popup a.leaflet-popup-close-button { color: var(--lake-foreground); top: 6px; right: 6px; }
+.popup-bild { display: flex; height: 7rem; align-items: center; justify-content: center; overflow: hidden; color: var(--lake-foreground); }
+.popup-bild img { width: 100%; height: 100%; object-fit: cover; }
+.popup-bild svg { width: 3rem; height: 3rem; }
+.popup-body { padding: .75rem; }
+.popup-body h3 { font-size: 1.125rem; font-weight: 700; }
+.popup-body p { font-size: .875rem; color: var(--muted-foreground); }
+
+/* Tips-ruta: "Håll Ctrl och scrolla för att zooma" */
+.map-tips {
+    position: absolute; inset: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    background: oklch(0.24 0.05 235 / .45); color: var(--lake-foreground);
+    font-size: 1.125rem; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.map-tips.is-synlig { opacity: 1; }
